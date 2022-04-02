@@ -2,5 +2,5 @@
 
 input format:
 ```
-NAME,CLASS/DIVISION
+NAME,CLASS
 ```
