@@ -6,7 +6,7 @@ import json
 app = Flask(__name__)
 
 # get configs
-with open("config.json") as config_file:
+with open("exconfig.json") as config_file:
     config = json.load(config_file)
     csvfile = config["csvfile"]
     allowed_ips = config["allowed_ips"]
@@ -40,12 +40,12 @@ def get_ip():
 
 
 # routes
-@app.route("/search/")
+@app.route("/")
 def renderPage():
     ip = get_ip()
     if ip not in allowed_ips:
         return "not authorised"
-    return render_template('index.html', ip=ip)
+    return render_template('search.html', err=" ")
 
 
 @app.route('/search', methods=['POST'])
@@ -61,9 +61,10 @@ def get_query():
         Division = raw_in[1]
         results = search(Name, Division)
     except:
-        return render_template('index.html', err='incorrect query format', ip=ip)
+        return render_template('search.html', err='err: incorrect query format')
     if results.empty:
-        return render_template('index.html', err='0 results', ip=ip)
+        return render_template('search.html', err='err: 0 results')
     else:
-        tables_ = [results.to_html(classes='data', index=False)]
-        return render_template('index.html', tables=tables_, ip=ip)
+        tables_ = [results.to_html(
+            classes='table table-hover', justify="unset", index=False, border=0)]
+        return render_template('search.html', tables=tables_)

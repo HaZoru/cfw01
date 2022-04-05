@@ -1,0 +1,6 @@
+{
+    "csvfile": "FILE.csv",
+    "allowed_ips": [
+        "127.0.0.1"
+    ]
+}
