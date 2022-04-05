@@ -6,7 +6,7 @@ import json
 app = Flask(__name__)
 
 # get configs
-with open("exconfig.json") as config_file:
+with open("config.json") as config_file:
     config = json.load(config_file)
     csvfile = config["csvfile"]
     allowed_ips = config["allowed_ips"]
