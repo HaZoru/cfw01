@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template
 import pandas as pd
 import json
+import re
 
 
 app = Flask(__name__)
@@ -10,27 +11,29 @@ with open("config.json") as config_file:
     config = json.load(config_file)
     csvfile = config["csvfile"]
     allowed_ips = config["allowed_ips"]
-# set dataframe
 
+
+# set dataframe
 df = pd.read_csv(csvfile, index_col='id')
 df.sort_index(inplace=True)
 
 
 # helper funcs
 def get_filter(col, val):
+    """returns a boolean filter for search() func"""
     return df[col].str.contains(val, na=False, case=False)
 
 
-# return filtered dataframe
 def search(Name, Division):
-    filt1 = get_filter('Name', Name)
+    """returns filtered dataframe"""
+    name_filt = get_filter('Name', Name)
     # filt2 = get_filter('Course', Course)
-    filt3 = get_filter('Division', Division)
-    return df.loc[filt1 & filt3, ['Name', 'Course', 'Division', 'Class No']]
+    div_filt = get_filter('Division', Division)
+    return df.loc[name_filt & div_filt, ['Name', 'Course', 'Division', 'Date of Birth', 'Class No']]
 
 
-# get ip
 def get_ip():
+    """returns ip address of the client"""
     ip = ''
     if not request.headers.getlist("X-Forwarded-For"):
         ip = request.remote_addr
@@ -39,9 +42,23 @@ def get_ip():
     return ip
 
 
+def process_input(raw_in):
+    """returns NAME and DIVISION from the raw user input"""
+    search_NAME = re.search(r'(name|n):(\w+)', raw_in)
+    search_DIVISION = re.search(r'(div|d):(\w+)', raw_in)
+
+    NAME = search_NAME.group(2).replace(
+        '_', ' ') if search_NAME is not None else ''
+    DIVISION = search_DIVISION.group(2).replace(
+        '_', ' ') if search_DIVISION is not None else ''
+    # DOB = re.search(r'(dob):(\d\d?/\d\d?/\d{4})', raw_in).group(2)
+    return NAME, DIVISION
+
+
 # routes
 @app.route("/")
 def renderPage():
+    """render home page"""
     ip = get_ip()
     if ip not in allowed_ips:
         return "not authorised"
@@ -55,16 +72,24 @@ def get_query():
     if ip not in allowed_ips:
         return "not authorised"
 
-    raw_in = request.form['query'].split(',')
-    try:
-        Name = raw_in[0]
-        Division = raw_in[1]
-        results = search(Name, Division)
-    except:
-        return render_template('search.html', err='err: incorrect query format')
+    # process raw input
+    raw_in = request.form['query']
+    NAME, DIVISION = process_input(raw_in)
+
+    # catch no args
+    if NAME == '' and DIVISION == '':
+        return render_template('search.html', err='err: no arguments given')
+
+    # render tables
+    results = search(NAME, DIVISION)
     if results.empty:
-        return render_template('search.html', err='err: 0 results')
+        return render_template('search.html', err='0 results')
     else:
         tables_ = [results.to_html(
             classes='table table-hover', justify="unset", index=False, border=0)]
         return render_template('search.html', tables=tables_)
+
+
+@app.route('/docs')
+def render_docs():
+    return render_template('docs.html')

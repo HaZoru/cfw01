@@ -26,6 +26,14 @@
         header {
             display: none;
         }
+
+        kbd {
+            margin-right: 0.5em;
+        }
+
+        .notif {
+            /* width: 100% !important; */
+        }
     </style>
 </head>
 
@@ -53,8 +61,17 @@
         </div>
     </nav>
     <!-- end of navbar -->
+    <div class="alert alert-primary alert-dismissible fade show notif" role="alert">
+        This site is still under development
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div class="container-fluid" id="main">
 
-    {% block content %}{% endblock %}
+
+
+        {% block content %}{% endblock %}
+    </div>
+
 
     <!-- from bootsrap example footer -->
     <div class="container">
