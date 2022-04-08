@@ -31,7 +31,7 @@ def get_filter(col, val):
         month = months_3word_list[int(val[1]) - 1] if val[1] != 'n' else ''
         year = val[2] if val[2] != 'n' else ''
         print(day, month, year)
-        dob_bool = df[col].str.contains(day, na=False, case=False) & df[col].str.contains(
+        dob_bool = df[col].str.contains(f'{day}/', na=False, case=False) & df[col].str.contains(
             f'/{year}', na=False, case=False) & df[col].str.contains(
             f'{month}', na=False, case=True)
         return dob_bool
